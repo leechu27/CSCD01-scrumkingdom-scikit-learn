@@ -17,6 +17,9 @@ from sklearn.utils._testing import assert_array_almost_equal
 from sklearn.experimental import enable_iterative_imputer  # noqa
 
 from sklearn.datasets import load_diabetes
+from sklearn.datasets import fetch_california_housing
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.experimental import enable_iterative_imputer  # noqa
 from sklearn.impute import MissingIndicator
 from sklearn.impute import SimpleImputer, IterativeImputer
 from sklearn.dummy import DummyRegressor
@@ -665,7 +668,7 @@ def test_iterative_imputer_clip():
     n = 100
     d = 10
     X = _sparse_random_matrix(n, d, density=0.10,
-                             random_state=rng).toarray()
+                              random_state=rng).toarray()
 
     imputer = IterativeImputer(missing_values=0,
                                max_iter=1,
@@ -769,7 +772,7 @@ def test_iterative_imputer_transform_stochasticity():
     n = 100
     d = 10
     X = _sparse_random_matrix(n, d, density=0.10,
-                             random_state=rng1).toarray()
+                              random_state=rng1).toarray()
 
     # when sample_posterior=True, two transforms shouldn't be equal
     imputer = IterativeImputer(missing_values=0,
@@ -1475,6 +1478,31 @@ def test_simple_imputation_inverse_transform_exceptions(missing_value):
     with pytest.raises(ValueError,
                        match=f"Got 'add_indicator={imputer.add_indicator}'"):
         imputer.inverse_transform(X_1_trans)
+
+
+@pytest.mark.parametrize("missing_rate", [0.75])
+def test_imputer_reshape(missing_rate):
+    rng = np.random.RandomState(42)
+    X_california, y_california = fetch_california_housing(return_X_y=True)
+    X_california = X_california[:400]
+    y_california = y_california[:400]
+
+    n_samples, n_features = X_california.shape
+    n_missing_samples = int(n_samples * missing_rate)
+
+    missing_samples = np.zeros(n_samples, dtype=bool)
+    missing_samples[: n_missing_samples] = True
+
+    rng.shuffle(missing_samples)
+    missing_features = rng.randint(0, n_features, n_missing_samples)
+
+    X_missing = X_california.copy()
+    X_missing[missing_samples, missing_features] = np.nan
+    y_missing = y_california.copy()
+
+    imputer = IterativeImputer(estimator=PLSRegression(n_components=2))
+    X_imputed = imputer.fit_transform(X_missing)
+    assert X_imputed.shape == (400, 8)
 
 
 @pytest.mark.parametrize(
