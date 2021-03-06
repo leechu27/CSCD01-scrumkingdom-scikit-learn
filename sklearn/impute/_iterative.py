@@ -345,7 +345,8 @@ class IterativeImputer(_BaseImputer):
                                      self._max_value[feat_idx])
 
         # update the feature
-        X_filled[missing_row_mask, feat_idx] = imputed_values
+        shape, length = imputed_values.shape, len(imputed_values.shape)
+        X_filled[missing_row_mask, feat_idx] = imputed_values.reshape(shape[0]) if length > 1 else imputed_values
         return X_filled, estimator
 
     def _get_neighbor_feat_idx(self,
