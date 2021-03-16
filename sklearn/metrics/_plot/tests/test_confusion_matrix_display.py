@@ -17,6 +17,11 @@ from sklearn.svm import SVR
 from sklearn.metrics import ConfusionMatrixDisplay
 from sklearn.metrics import confusion_matrix
 
+import matplotlib.pyplot as plt
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import plot_confusion_matrix
+
 
 # TODO: Remove when https://github.com/numpy/numpy/issues/14397 is resolved
 pytestmark = pytest.mark.filterwarnings(
@@ -380,3 +385,64 @@ def test_confusion_matrix_with_unknown_labels(pyplot, constructor_name):
     display_labels = [tick.get_text() for tick in disp.ax_.get_xticklabels()]
     expected_labels = [str(i) for i in range(n_classes + 1)]
     assert_array_equal(expected_labels, display_labels)
+
+def test_confusion_matrix_font_size_testsuite(pyplot):
+    # import some data to play with
+    iris = datasets.load_iris()
+    X = iris.data
+    y = iris.target
+    class_names = iris.target_names
+
+    # Split the data into a training set and a test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+    # Run classifier, using a model that is too regularized (C too low) to see
+    # the impact on the results
+    classifier = svm.SVC(kernel='linear', C=0.01).fit(X_train, y_train)
+
+    np.set_printoptions(precision=2)
+    test_font_sizes = [1,2,4,10, None]
+    for fontsize in test_font_sizes:
+        test_confusion_matrix_font_size_equal(pyplot,classifier, X_test, y_test,class_names, fontsize)
+    
+    test_font_sizes_unequal = [(1,2), (12,14), (5, None)]
+    for (fs1, fs2) in test_font_sizes_unequal:
+        test_confusion_matrix_font_size_not_equal(pyplot,classifier, X_test, y_test,class_names, fs1, fs2)
+
+def test_confusion_matrix_font_size_equal(pyplot,classifier, X_test, y_test,
+                                    class_names, fontsize):
+
+    disp1 = plot_confusion_matrix(classifier, X_test, y_test,
+                                    display_labels=class_names,
+                                    cmap=plt.cm.Blues,
+                                    font_size=fontsize)
+    disp2 = plot_confusion_matrix(classifier, X_test, y_test,
+                                    display_labels=class_names,
+                                    cmap=plt.cm.Blues,
+                                    font_size=fontsize)
+    
+    disp1_text = disp1.text_.ravel()
+    disp2_text = disp2.text_.ravel()
+
+    for i in range(len(disp1_text)):
+        if fontsize == None:
+            assert disp1_text[i].get_fontsize() == disp2_text[i].get_fontsize() == 10
+        else:
+            assert disp1_text[i].get_fontsize() == disp2_text[i].get_fontsize() == fontsize
+
+def test_confusion_matrix_font_size_not_equal(pyplot,classifier, X_test, y_test,
+                                    class_names, fontsize1, fontsize2):
+    disp1 = plot_confusion_matrix(classifier, X_test, y_test,
+                                    display_labels=class_names,
+                                    cmap=plt.cm.Blues,
+                                    font_size=fontsize1)
+    disp2 = plot_confusion_matrix(classifier, X_test, y_test,
+                                    display_labels=class_names,
+                                    cmap=plt.cm.Blues,
+                                    font_size=fontsize2)
+    
+    disp1_text = disp1.text_.ravel()
+    disp2_text = disp2.text_.ravel()
+
+    for i in range(len(disp1_text)):
+        assert disp1_text[i].get_fontsize() != disp2_text[i].get_fontsize()
