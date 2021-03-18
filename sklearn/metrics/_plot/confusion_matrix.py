@@ -80,7 +80,7 @@ class ConfusionMatrixDisplay:
     @_deprecate_positional_args
     def plot(self, *, include_values=True, cmap='viridis',
              xticks_rotation='horizontal', values_format=None,
-             ax=None, colorbar=True):
+             ax=None, colorbar=True, font_size=None):
         """Plot visualization.
 
         Parameters
@@ -105,6 +105,9 @@ class ConfusionMatrixDisplay:
 
         colorbar : bool, default=True
             Whether or not to add a colorbar to the plot.
+
+        font_size: int, default=None
+            font size of the output, If `None` the default font size is used.
 
         Returns
         -------
@@ -142,10 +145,16 @@ class ConfusionMatrixDisplay:
                 else:
                     text_cm = format(cm[i, j], values_format)
 
-                self.text_[i, j] = ax.text(
-                    j, i, text_cm,
-                    ha="center", va="center",
-                    color=color)
+                if font_size == None:
+                    self.text_[i, j] = ax.text(
+                        j, i, text_cm,
+                        ha="center", va="center",
+                        color=color)
+                else:
+                    self.text_[i, j] = ax.text(
+                        j, i, text_cm,
+                        ha="center", va="center",
+                        color=color, fontsize=font_size)
 
         if self.display_labels is None:
             display_labels = np.arange(n_classes)
@@ -441,7 +450,8 @@ def plot_confusion_matrix(estimator, X, y_true, *, labels=None,
                           display_labels=None, include_values=True,
                           xticks_rotation='horizontal',
                           values_format=None,
-                          cmap='viridis', ax=None, colorbar=True):
+                          cmap='viridis', ax=None, colorbar=True,
+                          font_size=None):
     """Plot Confusion Matrix.
 
     Read more in the :ref:`User Guide <confusion_matrix>`.
@@ -510,6 +520,9 @@ def plot_confusion_matrix(estimator, X, y_true, *, labels=None,
         Whether or not to add a colorbar to the plot.
 
         .. versionadded:: 0.24
+    
+    font_size: int, default=None
+        font size of the output, If `None` the default font size is used.
 
     Returns
     -------
@@ -556,4 +569,4 @@ def plot_confusion_matrix(estimator, X, y_true, *, labels=None,
                                   display_labels=display_labels)
     return disp.plot(include_values=include_values,
                      cmap=cmap, ax=ax, xticks_rotation=xticks_rotation,
-                     values_format=values_format, colorbar=colorbar)
+                     values_format=values_format, colorbar=colorbar, font_size=font_size)
