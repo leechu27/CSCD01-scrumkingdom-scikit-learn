@@ -486,3 +486,25 @@ def test_bayesian_mixture_predict_predict_proba():
             Y_pred_proba = bgmm.predict_proba(X).argmax(axis=1)
             assert_array_equal(Y_pred, Y_pred_proba)
             assert adjusted_rand_score(Y, Y_pred) >= .95
+
+def test_bic():
+    X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [12, 4], [10, 7]])
+    expected_BIC = [73.31678915346886, 78.7421028573163, 83.9269065802425, 80.2694482826915]
+
+    i = 0
+    for type in COVARIANCE_TYPE:
+        mixture = BayesianGaussianMixture(n_components=5, covariance_type=type, max_iter=150)
+        mixture.fit(X)
+        assert abs((mixture.get_BIC_score(X) - expected_BIC[i]) / len(X)) < 1
+        i+=1
+
+def test_aic():
+    X = np.array([[1, 2], [1, 4], [1, 0], [4, 2], [12, 4], [10, 7]])
+    expected_AIC = [74.5662343366754, 79.99153223208455, 85.86637157581019, 82.37099445239294]
+
+    i = 0
+    for type in COVARIANCE_TYPE:
+        mixture = BayesianGaussianMixture(n_components=5, covariance_type=type, max_iter=150)
+        mixture.fit(X)
+        assert abs((mixture.get_AIC_score(X) - expected_AIC[i]) / len(X)) < 1
+        i+=1

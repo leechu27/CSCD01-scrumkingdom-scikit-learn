@@ -792,3 +792,45 @@ class BayesianGaussianMixture(BaseMixture):
                                       self.precisions_cholesky_.T)
         else:
             self.precisions_ = self.precisions_cholesky_ ** 2
+
+    def get_BIC_score(self, X):
+        type = self.covariance_type
+        score = self.score(X)
+        shape = X.shape[0]
+        shape_log = np.log(shape)
+        (_, features) = self.means_.shape
+        components = len(np.unique(self.predict(X)))
+
+        base_score = -2 * score * shape
+        type_score = features * (2 * components) - 1 
+
+        if type == 'diag':
+            type_score += components * features
+        if type == 'full':
+            type_score += components * features * ((features + 1) / 2)
+        if type == 'spherical':
+            type_score += components
+        if type == 'tied':
+            type_score += features * ((features + 1) / 2)
+        return base_score + type_score * shape_log
+
+    def get_AIC_score(self, X):
+        type = self.covariance_type
+        score = self.score(X)
+        shape = X.shape[0]
+        (_, features) = self.means_.shape
+        components = len(np.unique(self.predict(X)))
+
+        base_score = -2 * score * shape
+        type_score = features * (2 * components) - 1 
+
+        if type == 'diag':
+            type_score += components * features
+        if type == 'full':
+            type_score += components * features * ((features + 1) / 2)
+        if type == 'spherical':
+            type_score += components
+        if type == 'tied':
+            type_score += features * ((features + 1) / 2)
+
+        return base_score + type_score * 2
