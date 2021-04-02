@@ -794,6 +794,15 @@ class BayesianGaussianMixture(BaseMixture):
             self.precisions_ = self.precisions_cholesky_ ** 2
 
     def get_BIC_score(self, X):
+        """
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+
+        Returns
+        -------
+        bic : float
+        """
         type = self.covariance_type
         score = self.score(X)
         shape = X.shape[0]
@@ -815,6 +824,15 @@ class BayesianGaussianMixture(BaseMixture):
         return base_score + type_score * shape_log
 
     def get_AIC_score(self, X):
+        """
+        Parameters
+        ----------
+        X : array-like of shape (n_samples, n_features)
+
+        Returns
+        -------
+        aic : float
+        """
         type = self.covariance_type
         score = self.score(X)
         shape = X.shape[0]
